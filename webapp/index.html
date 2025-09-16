@@ -5,150 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cats TWA</title>
     <style>
-        body { font-family: sans-serif; color: var(--tg-theme-text-color); background-color: var(--tg-theme-bg-color); text-align: center; padding: 20px; }
-        button { padding: 10px 20px; font-size: 16px; cursor: pointer; color: var(--tg-theme-button-color); background-color: var(--tg-theme-button-text-color); border: none; border-radius: 5px; margin: 10px; }
-        .status { margin: 10px 0; font-style: italic; }
-        .debug { background: #f0f0f0; color: #333; padding: 10px; margin: 10px 0; border-radius: 5px; font-size: 12px; text-align: left; max-height: 200px; overflow-y: auto; }
+        body { font-family: sans-serif; color: var(--tg-theme-text-color); background-color: var(--tg-theme-bg-color); text-align: center; padding-top: 50px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; color: var(--tg-theme-button-color); background-color: var(--tg-theme-button-text-color); border: none; border-radius: 5px; margin-top: 20px; }
     </style>
 </head>
 <body>
     <h1>Welcome to cats Web App!</h1>
     <p id="user-info">Loading user data...</p>
-    <p id="status" class="status">Initializing...</p>
-    
-    <button id="send-data-btn">Send via Button</button>
-    <br>
-    <button id="test-simple-btn">Test Simple Message</button>
-    
-    <div id="debug-info" class="debug">
-        <strong>Debug Info:</strong><br>
-        <div id="debug-content">Starting debug...</div>
-    </div>
+    <button id="send-data-btn">Send a message to the bot</button>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        // Debug function to show info on page
-        function debugLog(message) {
-            const debugContent = document.getElementById('debug-content');
-            const timestamp = new Date().toLocaleTimeString();
-            debugContent.innerHTML += `<br>${timestamp}: ${message}`;
-            debugContent.scrollTop = debugContent.scrollHeight;
-        }
-
         const tg = window.Telegram.WebApp;
+
         const userInfoElement = document.getElementById('user-info');
-        const statusElement = document.getElementById('status');
-        
-        debugLog('WebApp script loaded');
-        debugLog(`Telegram object exists: ${!!tg}`);
-        
-        if (tg) {
-            debugLog(`Platform: ${tg.platform || 'unknown'}`);
-            debugLog(`Version: ${tg.version || 'unknown'}`);
-            debugLog(`Init data exists: ${!!tg.initData}`);
-            debugLog(`Init data length: ${tg.initData ? tg.initData.length : 0}`);
-        }
-
-        tg.ready();
-        debugLog('WebApp ready() called');
-
-        // Check if webapp is properly initialized
-        if (!tg.initData) {
-            statusElement.innerText = "Error: Web App not properly initialized";
-            userInfoElement.innerText = "Please open via Telegram bot with /webapp command";
-            debugLog('ERROR: No initData - not opened via Telegram');
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            userInfoElement.innerText = `Hello, ${tg.initDataUnsafe.user.first_name}! Your user ID is ${tg.initDataUnsafe.user.id}.`;
         } else {
-            debugLog('WebApp initialized successfully');
-            statusElement.innerText = "Web App ready";
-            
-            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                userInfoElement.innerText = `Hello, ${tg.initDataUnsafe.user.first_name}! ID: ${tg.initDataUnsafe.user.id}`;
-                debugLog(`User: ${tg.initDataUnsafe.user.first_name} (ID: ${tg.initDataUnsafe.user.id})`);
-            } else {
-                userInfoElement.innerText = "Could not retrieve user data";
-                debugLog('Warning: No user data in initDataUnsafe');
-            }
-
-            // Show main Telegram button
-            tg.MainButton.text = "Send Data to Bot";
-            tg.MainButton.show();
-            debugLog('Main button configured and shown');
-            
-            // Handler for main Telegram button
-            tg.MainButton.onClick(() => {
-                debugLog('Main button clicked');
-                sendDataToBot('main-button');
-            });
+            userInfoElement.innerText = "Could not retrieve user data. Please open this in Telegram.";
         }
 
-        // Function to send data
-        function sendDataToBot(source) {
-            if (!tg.initData) {
-                statusElement.innerText = "Error: Web App not initialized";
-                debugLog('ERROR: Trying to send data but no initData');
-                return;
-            }
-            
-            const dataToSend = JSON.stringify({
-                message: `Hello from Web App (${source})!`,
-                timestamp: Date.now(),
-                userId: tg.initDataUnsafe?.user?.id || 'unknown',
-                source: source
-            });
-            
-            debugLog(`Preparing to send data from ${source}`);
-            debugLog(`Data: ${dataToSend.substring(0, 100)}...`);
-            statusElement.innerText = `Sending data from ${source}...`;
-            
-            try {
-                tg.sendData(dataToSend);
-                debugLog('sendData() called successfully');
-                statusElement.innerText = `Data sent from ${source}! Check bot.`;
-            } catch (error) {
-                debugLog(`ERROR calling sendData: ${error.message}`);
-                statusElement.innerText = `Error: ${error.message}`;
-            }
-        }
-
-        // Regular button handler
-        document.getElementById('send-data-btn').addEventListener('click', () => {
-            debugLog('Regular button clicked');
-            sendDataToBot('regular-button');
+        const sendButton = document.getElementById('send-data-btn');
+        sendButton.addEventListener('click', () => {
+            const dataToSend = "Hello from Web App! You clicked the button.";
+            tg.sendData(dataToSend);
+            tg.close();
         });
-
-        // Simple test button
-        document.getElementById('test-simple-btn').addEventListener('click', () => {
-            debugLog('Simple test button clicked');
-            if (!tg.initData) {
-                debugLog('ERROR: No initData for simple test');
-                return;
-            }
-            
-            try {
-                tg.sendData('simple test message');
-                debugLog('Simple message sent successfully');
-                statusElement.innerText = 'Simple message sent!';
-            } catch (error) {
-                debugLog(`ERROR in simple test: ${error.message}`);
-                statusElement.innerText = `Simple test error: ${error.message}`;
-            }
-        });
-
-        // Event handlers
-        tg.onEvent('web_app_data_sent', function() {
-            debugLog('EVENT: web_app_data_sent triggered');
-            statusElement.innerText = "Data successfully sent!";
-        });
-        
-        tg.onEvent('mainButtonClicked', function() {
-            debugLog('EVENT: mainButtonClicked');
-        });
-        
-        // Expand the webapp
-        tg.expand();
-        debugLog('WebApp expanded');
-        
-        debugLog('Script initialization complete');
     </script>
 </body>
 </html>
