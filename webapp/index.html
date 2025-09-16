@@ -6,11 +6,13 @@
     <title>Cats TWA</title>
     <style>
         body { font-family: sans-serif; color: var(--tg-theme-text-color); background-color: var(--tg-theme-bg-color); text-align: center; padding-top: 50px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; color: var(--tg-theme-button-color); background-color: var(--tg-theme-button-text-color); border: none; border-radius: 5px; margin-top: 20px; }
     </style>
 </head>
 <body>
     <h1>Welcome to cats Web App!</h1>
     <p id="user-info">Loading user data...</p>
+    <button id="send-data-btn">Send a message to the bot</button>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
@@ -22,6 +24,13 @@
         } else {
             userInfoElement.innerText = "Could not retrieve user data. Please open this in Telegram.";
         }
+
+        const sendButton = document.getElementById('send-data-btn');
+        sendButton.addEventListener('click', () => {
+            const dataToSend = "Hello from Web App! You clicked the button.";
+            tg.sendData(dataToSend);
+            tg.close();
+        });
     </script>
 </body>
 </html>
