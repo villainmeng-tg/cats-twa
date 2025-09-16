@@ -13,6 +13,7 @@
     <h1>Welcome to cats Web App!</h1>
     <p id="user-info">Loading user data...</p>
     <button id="send-data-btn">Send a message to the bot</button>
+    <p id="status" class="status"></p>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
@@ -21,6 +22,8 @@
         tg.ready();
 
         const userInfoElement = document.getElementById('user-info');
+        const statusElement = document.getElementById('status');
+
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
             userInfoElement.innerText = `Hello, ${tg.initDataUnsafe.user.first_name}! Your user ID is ${tg.initDataUnsafe.user.id}.`;
         } else {
@@ -30,10 +33,13 @@
         const sendButton = document.getElementById('send-data-btn');
         sendButton.addEventListener('click', () => {
             const dataToSend = "Hello from Web App! You clicked the button.";
+            statusElement.innerText = "Sending data via button...";
             tg.sendData(dataToSend);
-            tg.close();
+            setTimeout(() => {
+                statusElement.innerText = "Data sent via button!";
+                tg.close();
+            }, 2000);
         });
     </script>
 </body>
 </html>
-
