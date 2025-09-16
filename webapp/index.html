@@ -20,14 +20,24 @@
     <script>
         const tg = window.Telegram.WebApp;
         
-        // Show main Telegram button
-        tg.MainButton.text = "Send Data to Bot";
-        tg.MainButton.show();
+        console.log('Telegram WebApp object:', tg);
+        console.log('Is webapp ready:', tg.isReady);
+        console.log('Init data:', tg.initData);
+        console.log('Platform:', tg.platform);
 
         tg.ready();
 
         const userInfoElement = document.getElementById('user-info');
         const statusElement = document.getElementById('status');
+        
+        // Check if webapp is properly initialized
+        if (!tg.initData) {
+            statusElement.innerText = "Error: Web App not properly initialized. Open via Telegram bot.";
+            userInfoElement.innerText = "Please open this via Telegram bot with /webapp command";
+        } else {
+            console.log('WebApp initialized successfully');
+            statusElement.innerText = "Web App ready";
+        }
         
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
             userInfoElement.innerText = `Hello, ${tg.initDataUnsafe.user.first_name}! Your user ID is ${tg.initDataUnsafe.user.id}.`;
@@ -35,47 +45,82 @@
             userInfoElement.innerText = "Could not retrieve user data. Please open this in Telegram.";
         }
 
-        // Handler for main Telegram button
-        tg.MainButton.onClick(() => {
-            const dataToSend = JSON.stringify({
-                message: "Hello from Web App!",
-                timestamp: Date.now(),
-                userId: tg.initDataUnsafe?.user?.id || 'unknown'
+        // Show main Telegram button only if properly initialized
+        if (tg.initData) {
+            tg.MainButton.text = "Send Data to Bot";
+            tg.MainButton.show();
+            
+            // Handler for main Telegram button
+            tg.MainButton.onClick(() => {
+                console.log('Main button clicked');
+                
+                const dataToSend = JSON.stringify({
+                    message: "Hello from Web App!",
+                    timestamp: Date.now(),
+                    userId: tg.initDataUnsafe?.user?.id || 'unknown',
+                    initData: tg.initData
+                });
+                
+                console.log('Sending data:', dataToSend);
+                statusElement.innerText = "Sending data...";
+                
+                try {
+                    tg.sendData(dataToSend);
+                    console.log('sendData called successfully');
+                } catch (error) {
+                    console.error('Error calling sendData:', error);
+                    statusElement.innerText = "Error sending data: " + error.message;
+                }
             });
-            
-            statusElement.innerText = "Sending data...";
-            tg.sendData(dataToSend);
-            
-            // Don't close immediately, wait a bit
-            setTimeout(() => {
-                statusElement.innerText = "Data sent!";
-                tg.close();
-            }, 1000);
-        });
+        }
 
         // Alternative way via regular button
         const sendButton = document.getElementById('send-data-btn');
         sendButton.addEventListener('click', () => {
+            console.log('Regular button clicked');
+            
+            if (!tg.initData) {
+                statusElement.innerText = "Error: Web App not initialized properly";
+                return;
+            }
+            
             const dataToSend = JSON.stringify({
                 message: "Hello from Web App (button click)!",
                 timestamp: Date.now(),
-                userId: tg.initDataUnsafe?.user?.id || 'unknown'
+                userId: tg.initDataUnsafe?.user?.id || 'unknown',
+                initData: tg.initData
             });
             
+            console.log('Sending data via button:', dataToSend);
             statusElement.innerText = "Sending data via button...";
-            tg.sendData(dataToSend);
             
-            // Give time for sending before closing
-            setTimeout(() => {
-                statusElement.innerText = "Data sent via button!";
-                tg.close();
-            }, 1000);
+            try {
+                tg.sendData(dataToSend);
+                console.log('sendData called successfully via button');
+                
+                // Don't close automatically for debugging
+                setTimeout(() => {
+                    statusElement.innerText = "Data sent! Check bot for response.";
+                }, 1000);
+            } catch (error) {
+                console.error('Error calling sendData via button:', error);
+                statusElement.innerText = "Error sending data: " + error.message;
+            }
         });
 
         // Handler for data sent event
         tg.onEvent('web_app_data_sent', function() {
+            console.log('web_app_data_sent event triggered');
             statusElement.innerText = "Data successfully sent!";
         });
+        
+        // Add more event listeners for debugging
+        tg.onEvent('mainButtonClicked', function() {
+            console.log('mainButtonClicked event');
+        });
+        
+        // Expand the webapp to full height
+        tg.expand();
     </script>
 </body>
 </html>
