@@ -18,6 +18,8 @@
     <script>
         const tg = window.Telegram.WebApp;
 
+        tg.ready();
+
         const userInfoElement = document.getElementById('user-info');
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
             userInfoElement.innerText = `Hello, ${tg.initDataUnsafe.user.first_name}! Your user ID is ${tg.initDataUnsafe.user.id}.`;
@@ -34,3 +36,4 @@
     </script>
 </body>
 </html>
+
